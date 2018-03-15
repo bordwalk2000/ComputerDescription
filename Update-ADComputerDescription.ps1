@@ -14,36 +14,37 @@ $OUSearchLocation | % {
         }
         
         if($_.Description) {
-            $DescriptionSplit = $_.Description.Split('|').trim()
+                $DescriptionSplit = $_.Description.Split('|').trim()
+                $PrimaryUser = if($DescriptionSplit.count -gt 1){ $DescriptionSplit[0] } Else{ $DescriptionSplit}
 
-            $PrimaryUser = if($DescriptionSplit.count -gt 1){ $DescriptionSplit[0] } Else{ $DescriptionSplit}
             if($PrimaryUser -notmatch "[0-9]" -or $PrimaryUser -cnotmatch “[^A-Z]”) {
                 $object.PrimaryUser = $PrimaryUser
             }
 
-            if($DescriptionSplit.count -gt 2) {
 
-                if(![string]::IsNullOrEmpty($DescriptionSplit[1])){
-                    if($DescriptionSplit[1] -match "[0-9]" -and $DescriptionSplit[1] -cmatch “[^A-Z]” -or $DescriptionSplit[1] -cnotlike "C00*") {
-                        $object.ServiceTag = $DescriptionSplit[1]
+            $DescriptionSplit | Where-Object { $_ -ne $array[0] } | % {
+
+                if(![string]::IsNullOrEmpty($_)){
+
+                    if(!$object.AssetTag -and $_.Substring(1) -cmatch “[^A-Z]” -and $_ -match "[0-9]" -and $_.Length -eq 7) {
+                        $object.ServiceTag = $_
                     }
-                }
-                
 
-                if(![string]::IsNullOrEmpty($DescriptionSplit[2])){
-                    if($DescriptionSplit[2] -clike "C00*" -and $DescriptionSplit[2] -match "[0-9]" -and $DescriptionSplit[2].Length -eq 6) {
-                        $object.AssetTag = $DescriptionSplit[2]
+                    if($_ -clike "C00*" -and $_ -match "[0-9]" -and $_.Length -eq 6) {
+                        $object.AssetTag = $_
                     }
-                }
 
-                if(![string]::IsNullOrEmpty($DescriptionSplit[3])){
-                    if($DescriptionSplit[3].Split(' ').count -eq 2) {
-                    
-                        if (@("Deployed","Reinstalled") -contains $DescriptionSplit[3].Split(' ')[0] -and [boolean][DateTime]::Parse($DescriptionSplit[3].Split(' ')[-1])){
-                            $object.InstallDate = $DescriptionSplit[3]
+                    if(@("Deployed","Reinstalled") -contains $_.Split(' ')[0]) {
+                        if($_.Split(' ').count -eq 2) {
+                            if([boolean][DateTime]::Parse($_.Split(' ')[-1])) {
+                                $object.InstallDate = $_
+                            }
                         }
+                        
                     }
+
                 }
+
             }
         }
         $ComputerObjects += $object
