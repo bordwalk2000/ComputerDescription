@@ -2,15 +2,14 @@
 $ComputerObjects=@()
 
 $OUSearchLocation | % {
-
-    Get-ADComputer -filter {Enabled -eq "True"} -Properties Description -searchbase $_ | 
-    % {
+    Get-ADComputer -filter {Enabled -eq "True"} -Properties Description -searchbase $_ | % {
         $object = New-Object PSObject -Property @{
             Name = $_.Name
             PrimaryUser = ''
             ServiceTag = ''
             AssetTag = ''
             InstallDate = ''
+            Description = $_.Description
         }
         
         if($_.Description) {
@@ -21,9 +20,7 @@ $OUSearchLocation | % {
                 $object.PrimaryUser = $PrimaryUser
             }
 
-
-            $DescriptionSplit | Where-Object { $_ -ne $array[0] } | % {
-
+            $DescriptionSplit | Where-Object { $_ -ne $DescriptionSplit[0] } | % {
                 if(![string]::IsNullOrEmpty($_)){
 
                     if(!$object.AssetTag -and $_.Substring(1) -cmatch “[^A-Z]” -and $_ -match "[0-9]" -and $_.Length -eq 7) {
@@ -40,23 +37,20 @@ $OUSearchLocation | % {
                                 $object.InstallDate = $_
                             }
                         }
-                        
                     }
-
                 }
-
             }
         }
         $ComputerObjects += $object
     }
 }
-$ComputerObjects |
- % {
+
+$ComputerObjects | % {
     if(Test-Connection $_.Name -Count 2 -ea SilentlyContinue) {
 
         if($_.Name -notlike "MO-STL-MIS*") {
             $PrimaryUserName = (Get-WinEvent -ComputerName $_.Name -MaxEvents 300 -ErrorAction SilentlyContinue -FilterHashtable @{LogName ='Microsoft-Windows-TerminalServices-LocalSessionManager/Operational';ID=21} |  
-            ? {$_.Properties[2].value -eq "LOCAL" -and  $_.Properties[0].value -notlike "*admin*" -and  $_.Properties[0].value -notlike "*setup*"} | 
+            ? {$_.Properties[2].value -eq "local" -and  $_.Properties[0].value -notlike "*admin*" -and  $_.Properties[0].value -notlike "*setup*"} | 
             Select -First 7 | 
             Group-Object {$_.Properties[0].value} |
             Select count,name,@{ Name = 'Latest'; Expression = { ($_.Group | Measure-Object -Property TimeCreated -Maximum).Maximum } } |
@@ -76,12 +70,20 @@ $ComputerObjects |
 
         $AssetTag = (Get-WmiObject Win32_SystemEnclosure -Computername $_.Name).SMBiosAssetTag
         if($AssetTag) {
-            $_.AssetTag = $AssetTag
+            $_.AssetTag = $AssetTag.ToUpper()
+        } elseif ($_.AssetTag -and $_.AssetTag.Length -eq 6) {
+            $_.AssetTag = $_.AssetTag + " ***MISSING IN BIOS***"
         }
 
         if(!$_.InstallDate) {
             $_.InstallDate = "Deployed " + ([WMI]"").ConvertToDateTime((Get-WmiObject Win32_OperatingSystem -ComputerName mo-stl-mfg-dt06).InstallDate).ToString("yyyy-MM-dd")
         }
+
+        $GeneratedDescription = [String]::Join(" | ", @($_.Primaryuser, $_.ServiceTag, $_.AssetTag.trim(), $_.InstallDate))
+
+        if($_.Description -ne $GeneratedDescription)
+        {
+            Set-ADComputer -Identity $_.Name -Description $GeneratedDescription
+        }
     }
 }
-$ComputerObjects | Sort Name | FT Name, PrimaryUser, ServiceTag, AssetTag, InstallDate
