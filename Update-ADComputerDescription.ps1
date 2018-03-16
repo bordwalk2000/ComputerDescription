@@ -14,8 +14,8 @@ $OUSearchLocation | % {
         }
         
         if($_.Description) {
-                $DescriptionSplit = $_.Description.Split('|').trim()
-                $PrimaryUser = if($DescriptionSplit.count -gt 1){ $DescriptionSplit[0] } Else{ $DescriptionSplit}
+            $DescriptionSplit = $_.Description.Split('|').trim()
+            $PrimaryUser = if($DescriptionSplit.count -gt 1){ $DescriptionSplit[0] } Else{ $DescriptionSplit}
 
             if($PrimaryUser -notmatch "[0-9]" -or $PrimaryUser -cnotmatch “[^A-Z]”) {
                 $object.PrimaryUser = $PrimaryUser
@@ -50,4 +50,38 @@ $OUSearchLocation | % {
         $ComputerObjects += $object
     }
 }
-$ComputerObjects | Sort Name | ft Name, PrimaryUser, ServiceTag, AssetTag, InstallDate
+$ComputerObjects |
+ % {
+    if(Test-Connection $_.Name -Count 2 -ea SilentlyContinue) {
+
+        if($_.Name -notlike "MO-STL-MIS*") {
+            $PrimaryUserName = (Get-WinEvent -ComputerName $_.Name -MaxEvents 300 -ErrorAction SilentlyContinue -FilterHashtable @{LogName ='Microsoft-Windows-TerminalServices-LocalSessionManager/Operational';ID=21} |  
+            ? {$_.Properties[2].value -eq "LOCAL" -and  $_.Properties[0].value -notlike "*admin*" -and  $_.Properties[0].value -notlike "*setup*"} | 
+            Select -First 7 | 
+            Group-Object {$_.Properties[0].value} |
+            Select count,name,@{ Name = 'Latest'; Expression = { ($_.Group | Measure-Object -Property TimeCreated -Maximum).Maximum } } |
+            Sort Count ,Latest -Descending |
+            Select Name -first 1)
+        
+            if($PrimaryUserName) { 
+                $_.PrimaryUser = (Get-ADuser $PrimaryUserName.name.split('\')[-1]).Name
+                Remove-Variable PrimaryUserName -ErrorAction SilentlyContinue
+            }
+        }
+
+        $ServiceTag = (Get-WmiObject Win32_BIOS -Computername $_.Name).SerialNumber
+        if($ServiceTag) {
+            $_.ServiceTag = $ServiceTag
+        }
+
+        $AssetTag = (Get-WmiObject Win32_SystemEnclosure -Computername $_.Name).SMBiosAssetTag
+        if($AssetTag) {
+            $_.AssetTag = $AssetTag
+        }
+
+        if(!$_.InstallDate) {
+            $_.InstallDate = "Deployed " + ([WMI]"").ConvertToDateTime((Get-WmiObject Win32_OperatingSystem -ComputerName mo-stl-mfg-dt06).InstallDate).ToString("yyyy-MM-dd")
+        }
+    }
+}
+$ComputerObjects | Sort Name | FT Name, PrimaryUser, ServiceTag, AssetTag, InstallDate
