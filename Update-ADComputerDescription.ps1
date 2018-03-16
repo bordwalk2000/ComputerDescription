@@ -27,7 +27,7 @@ $OUSearchLocation | % {
                         $object.ServiceTag = $_
                     }
 
-                    if($_ -clike "C00*" -and $_ -match "[0-9]" -and $_.Length -eq 6) {
+                    if($_ -clike "C00*" -and $_ -match "[0-9]" -and ($_.Length -eq 6 -or $_.Length -eq 28)) {
                         $object.AssetTag = $_
                     }
 
