@@ -104,7 +104,12 @@ PROCESS {
                 }
         }
 
+            
+            if ([string]::IsNullOrEmpty($_.ServiceTag) -or [string]::IsNullOrEmpty($_.InstallDate)) {
+                Write-Verbose "$($_.Name) is online but was to build the description."
+            } else {
         $GeneratedDescription = [String]::Join(" | ", @($_.Primaryuser, $_.ServiceTag, $_.AssetTag.trim(), $_.InstallDate))
+            }
 
             if ($_.Description -ne $GeneratedDescription)
         {
