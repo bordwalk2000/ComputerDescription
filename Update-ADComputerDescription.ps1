@@ -1,8 +1,15 @@
-﻿$OUSearchLocation = "OU=Reboot,OU=Computers,OU=mo-stl-obrien,DC=ametek,DC=com" , "OU=No_Reboot,OU=Computers,OU=mo-stl-obrien,DC=ametek,DC=com"
-$ComputerObjects=@()
+[CmdletBinding()]
 
-$OUSearchLocation | % {
-    Get-ADComputer -filter {Enabled -eq "True"} -Properties Description -searchbase $_ | % {
+param(
+    [Parameter(Mandatory=$True)][string[]] $OUSearchLocation
+)
+
+BEGIN {
+$ComputerObjects=@()
+}
+PROCESS {
+    $OUSearchLocation | ForEach-Object {
+        Get-ADComputer -filter {Enabled -eq "True"} -Properties Description -searchbase $_ | ForEach-Object {
         $object = New-Object PSObject -Property @{
             Name = $_.Name
             PrimaryUser = ''
@@ -12,11 +19,11 @@ $OUSearchLocation | % {
             Description = $_.Description
         }
         
-        if($_.Description) {
+            if ($_.Description) {
             $DescriptionSplit = $_.Description.Split('|').trim()
-            $PrimaryUser = if($DescriptionSplit.count -gt 1){ $DescriptionSplit[0] } Else{ $DescriptionSplit}
+                $PrimaryUser = if ($DescriptionSplit.count -gt 1){ $DescriptionSplit[0] } Else { $DescriptionSplit }
 
-            if($PrimaryUser -notmatch "[0-9]" -or $PrimaryUser -cnotmatch “[^A-Z]”) {
+                if ($PrimaryUser -notmatch "[0-9]" -or $PrimaryUser -cnotmatch “[^A-Z]”) {
                 $object.PrimaryUser = $PrimaryUser
             }
 
