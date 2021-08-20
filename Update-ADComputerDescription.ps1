@@ -73,7 +73,7 @@ PROCESS {
             }
 
             try {
-                $ServiceTag = (Get-WmiObject Win32_BIOS -Computername $_.Name -ErrorAction Stop).SerialNumber
+                $ServiceTag = (Get-CimInstance Win32_BIOS -Computername $_.Name -ErrorAction Stop).SerialNumber
                 if ($ServiceTag) {
                     if ($ServiceTag -match "vmware") {
                         $_.ServiceTag = 'VMWare VM'
@@ -82,25 +82,25 @@ PROCESS {
         }
                 }
             } catch {
-                Write-Verbose "Unable to access Get-WmiObject Win32_BIOS"
+                Write-Verbose "Unable to access Get-CimInstance Win32_BIOS"
             }
 
             try {
-                $AssetTag = (Get-WmiObject Win32_SystemEnclosure -Computername $_.Name -ErrorAction Stop).SMBiosAssetTag.split(' ')[0]
+                $AssetTag = (Get-CimInstance Win32_SystemEnclosure -Computername $_.Name -ErrorAction Stop).SMBiosAssetTag.split(' ')[0]
                 if ($AssetTag) {
             $_.AssetTag = $AssetTag.ToUpper()
         } elseif ($_.AssetTag -and $_.AssetTag.Length -eq 6) {
             $_.AssetTag = $_.AssetTag + " ***MISSING IN BIOS***"
         }
             } catch {
-                Write-Verbose "Unable to access Get-WmiObject Win32_SystemEnclosure"
+                Write-Verbose "Unable to access Get-CimInstance Win32_SystemEnclosure"
             }
 
             if (!$_.InstallDate) {
                 try {
-                    $_.InstallDate = "Deployed " + ([WMI]"").ConvertToDateTime((Get-WmiObject Win32_OperatingSystem -ComputerName $_.Name -ea Stop).InstallDate).ToString("yyyy-MM-dd")
+                    $_.InstallDate = "Deployed " + ([WMI]"").ConvertToDateTime((Get-CimInstance Win32_OperatingSystem -ComputerName $_.Name -ea Stop).InstallDate).ToString("yyyy-MM-dd")
                 } catch {
-                    Write-Verbose "Unable to access Get-WmiObject Win32_OperatingSystem"
+                    Write-Verbose "Unable to access Get-CimInstance Win32_OperatingSystem"
                 }
         }
 
