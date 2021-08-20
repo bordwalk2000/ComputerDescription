@@ -75,6 +75,9 @@ PROCESS {
             try {
                 $ServiceTag = (Get-WmiObject Win32_BIOS -Computername $_.Name -ErrorAction Stop).SerialNumber
                 if ($ServiceTag) {
+                    if ($ServiceTag -match "vmware") {
+                        $_.ServiceTag = 'VMWare VM'
+                    } else {
             $_.ServiceTag = $ServiceTag
         }
                 }
