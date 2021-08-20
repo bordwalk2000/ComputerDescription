@@ -27,20 +27,18 @@ PROCESS {
                 $object.PrimaryUser = $PrimaryUser
             }
 
-            $DescriptionSplit | Where-Object { $_ -ne $DescriptionSplit[0] } | % {
-                if(![string]::IsNullOrEmpty($_)){
+                $DescriptionSplit | Where-Object { $_ -ne $DescriptionSplit[0] } | ForEach-Object {
+                    if (![string]::IsNullOrEmpty($_)){
 
-                    if(!$object.AssetTag -and $_.Substring(1) -cmatch “[^A-Z]” -and $_ -match "[0-9]" -and $_.Length -eq 7) {
+                        if (!$object.AssetTag -and $_.Substring(1) -cmatch “[^A-Z]” -and $_ -match "[0-9]" -and $_.Length -eq 7) {
                         $object.ServiceTag = $_
-                    }
 
-                    if($_ -clike "C00*" -and $_ -match "[0-9]" -and ($_.Length -eq 6 -or $_.Length -eq 28)) {
+                        } elseif ($_ -clike "C00*" -and $_ -match "[0-9]" -and ($_.Length -eq 6 -or $_.Length -eq 28)) {
                         $object.AssetTag = $_
-                    }
 
-                    if(@("Deployed","Reinstalled") -contains $_.Split(' ')[0]) {
-                        if($_.Split(' ').count -eq 2) {
-                            if([boolean][DateTime]::Parse($_.Split(' ')[-1])) {
+                        } elseif (@("Deployed","Reinstalled") -contains $_.Split(' ')[0]) {
+                            if ($_.Split(' ').count -eq 2) {
+                                if ([boolean][DateTime]::Parse($_.Split(' ')[-1])) {
                                 $object.InstallDate = $_
                             }
                         }
