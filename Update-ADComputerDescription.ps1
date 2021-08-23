@@ -54,7 +54,7 @@ PROCESS {
         if (Test-Connection $_.Name -Count 2 -ea SilentlyContinue) {
             Write-Verbose "$($_.Name) Online - Pulling Information"
             try {
-                if ($_.Name -notlike "*-MIS-*") {
+                if ($_.Name -notlike "*-MIS-DT*") {
                     $PrimaryUserName = (Get-WinEvent -ComputerName $_.Name -MaxEvents 300 -ErrorAction Stop -FilterHashtable @{LogName ='Microsoft-Windows-TerminalServices-LocalSessionManager/Operational';ID=21} |  
                     Where-Object {$_.Properties[0].value -notlike "*admin*" -and $_.Properties[0].value -notlike "*setup*"} | 
                     Select-Object -First 15 | 
