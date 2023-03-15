@@ -1,4 +1,4 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 
 param(
     [Parameter(Mandatory=$True)][string[]] $OUSearchLocation
@@ -51,11 +51,12 @@ PROCESS {
     }
 
     $ComputerObjects | ForEach-Object {
-        if (Test-Connection $_.Name -Count 2 -ea SilentlyContinue) {
-            Write-Verbose "$($_.Name) Online - Pulling Information"
+        if (Test-Connection $_.Name -Count 2 –Quiet) {
             try {
-                if ($_.Name -notlike "*-MIS-DT*") {
-                    $PrimaryUserName = (Get-WinEvent -ComputerName $_.Name -MaxEvents 300 -ErrorAction Stop -FilterHashtable @{LogName ='Microsoft-Windows-TerminalServices-LocalSessionManager/Operational';ID=21} |  
+                if ($_.Name -notlike "*-MIS-*") {
+                    $PrimaryUserName = (Get-WinEvent -ComputerName $_.Name -MaxEvents 300 -ErrorAction Stop -FilterHashtable @{
+                        LogName ='Microsoft-Windows-TerminalServices-LocalSessionManager/Operational';ID=21
+                    } |
                     Where-Object {$_.Properties[0].value -notlike "*admin*" -and $_.Properties[0].value -notlike "*setup*"} | 
                     Select-Object -First 15 | 
                     Group-Object {$_.Properties[0].value} |
@@ -64,8 +65,17 @@ PROCESS {
                     Select-Object Name -first 1)
         
                     if ($PrimaryUserName) { 
+                        try {
+                            # Check to see if username is in Active Directory
                         $_.PrimaryUser = (Get-ADuser $PrimaryUserName.name.split('\')[-1]).Name
-                        Remove-Variable PrimaryUserName -ErrorAction SilentlyContinue
+                    }
+                        catch {
+                            $Error.add("An error occurred finding AD User $($PrimaryUserName.name.split('\')[-1]).") | Out-Null
+                        }
+                        # If Get-ADUser Encoroed an Error, Assign the Unprocessed PrimaryUser To PrimaryUser Instead
+                        if ($Error[-1] -eq "An error occurred finding AD User $($PrimaryUserName.name.split('\')[-1])."){
+                            $_.PrimaryUser = $PrimaryUserName.Name
+                        }
                     }
                 }
             } catch {
@@ -98,7 +108,10 @@ PROCESS {
 
             if (!$_.InstallDate) {
                 try {
-                    $_.InstallDate = "Deployed " + ([WMI]"").ConvertToDateTime((Get-CimInstance Win32_OperatingSystem -ComputerName $_.Name -ea Stop).InstallDate).ToString("yyyy-MM-dd")
+                    $_.InstallDate = "Deployed " + (
+                        Get-CimInstance Win32_OperatingSystem -ComputerName $_.Name -ErrorAction Stop
+                    ).InstallDate.ToString("yyyy-MM-dd")
+                    Write-Debug "InstallDate Results: $($_.InstallDate)"
                 } catch {
                     Write-Verbose "Unable to access Get-CimInstance Win32_OperatingSystem"
                 }
