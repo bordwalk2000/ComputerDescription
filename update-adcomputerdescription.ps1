@@ -51,38 +51,36 @@ PROCESS {
     }
 
     $ComputerObjects | ForEach-Object {
-        Write-Verbose "Processing Data: $_"
         if (Test-Connection $_.Name -Count 2 –Quiet) {
             Write-Verbose "$($_.Name) is Online, Pulling Information."
+            Write-Verbose "Existing Data: $_"
             try {
-                if ($_.Name -notlike "*-MIS-*") {
-                    $PrimaryUserName = (Get-WinEvent -ComputerName $_.Name -MaxEvents 300 -ErrorAction Stop -FilterHashtable @{
-                        LogName ='Microsoft-Windows-TerminalServices-LocalSessionManager/Operational';ID=21
-                    } |
-                    Where-Object {$_.Properties[0].value -notlike "*admin*" -and $_.Properties[0].value -notlike "*setup*"} |
-                    Select-Object -First 15 |
-                    Group-Object {$_.Properties[0].value} |
-                    Select-Object Count, Name, @{ Name = 'Latest'; Expression = { ($_.Group | Measure-Object -Property TimeCreated -Maximum).Maximum } } |
-                    Sort-Object Count, Latest -Descending |
-                    Select-Object Name -first 1)
+                $PrimaryUserName = (Get-WinEvent -ComputerName $_.Name -MaxEvents 300 -ErrorAction Stop -FilterHashtable @{
+                    LogName ='Microsoft-Windows-TerminalServices-LocalSessionManager/Operational';ID=21
+                } |
+                Where-Object {$_.Properties[0].value -notlike "*admin*" -and $_.Properties[0].value -notlike "*setup*"} |
+                Select-Object -First 15 |
+                Group-Object {$_.Properties[0].value} |
+                Select-Object Count, Name, @{ Name = 'Latest'; Expression = { ($_.Group | Measure-Object -Property TimeCreated -Maximum).Maximum } } |
+                Sort-Object Count, Latest -Descending |
+                Select-Object Name -first 1)
 
-                    Write-Debug "PrimaryUserName Results: $PrimaryUserName"
+                Write-Debug "PrimaryUserName Results: $PrimaryUserName"
 
-                    if ($PrimaryUserName) {
-                        try {
-                            # Check to see if username is in Active Directory
-                            $_.PrimaryUser = (Get-ADuser $PrimaryUserName.name.split('\')[-1]).Name
-                        }
-                        catch {
-                            $Error.add("An error occurred finding AD User $($PrimaryUserName.name.split('\')[-1]).") | Out-Null
-                        }
-                        # If Get-ADUser Encoroed an Error, Assign the Unprocessed PrimaryUser To PrimaryUser Instead
-                        if ($Error[-1] -eq "An error occurred finding AD User $($PrimaryUserName.name.split('\')[-1])."){
-                            $_.PrimaryUser = $PrimaryUserName.Name
-                        }
+                if ($PrimaryUserName) {
+                    try {
+                        # Check to see if username is in Active Directory
+                        $_.PrimaryUser = (Get-ADuser $PrimaryUserName.name.split('\')[-1]).Name
                     }
-                    Write-Debug $_.PrimaryUser
+                    catch {
+                        $Error.add("An error occurred finding AD User $($PrimaryUserName.name.split('\')[-1]).") | Out-Null
+                    }
+                    # If Get-ADUser Encoroed an Error, Assign the Unprocessed PrimaryUser To PrimaryUser Instead
+                    if ($Error[-1] -eq "An error occurred finding AD User $($PrimaryUserName.name.split('\')[-1])."){
+                        $_.PrimaryUser = $PrimaryUserName.Name
+                    }
                 }
+                Write-Debug $_.PrimaryUser
             } catch {
                 Write-Verbose "Unable to access Get-WinEvent"
             }
@@ -127,6 +125,9 @@ PROCESS {
             # Print Variable Information
             Write-Debug "Processed Results: $_"
 
+            # Remove any left over $GeneratedDescription variable data
+            Remove-Variable GeneratedDescription -ErrorAction Ignore
+
             # Verifiy Data was Retrieved Before Updating Results
             if ([string]::IsNullOrEmpty($_.ServiceTag) -or [string]::IsNullOrEmpty($_.InstallDate)) {
                 Write-Verbose "$($_.Name) is online but was unable to build the description."
@@ -136,7 +137,7 @@ PROCESS {
 
             if ($_.Description -ne $GeneratedDescription)
             {
-                Write-Verbose "Updating $($_.Name) Description from $($_.Description) to $GeneratedDescription"
+                Write-Verbose "Updating $($_.Name) Description from '$($_.Description)' to '$GeneratedDescription'"
                 Set-ADComputer -Identity $_.Name -Description $GeneratedDescription
             }
         } else {
