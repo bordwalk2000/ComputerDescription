@@ -20,7 +20,8 @@ Function Convert-ComputerDescription {
 
         ForEach-Object -InputObject $Identity {
             Write-Verbose  "Converting computer description for $($Computer.Name)"
-            $object = New-Object PSObject -Property @{
+            $Object = New-Object PSObject -Property @{
+                PSTypeName  = 'ComputerDescription'
                 Name        = $_.Name
                 PrimaryUser = ''
                 ServiceTag  = ''
@@ -33,6 +34,8 @@ Function Convert-ComputerDescription {
             if ($_.Description) {
                 # Split description filed on Pipe & Trim results
                 $DescriptionSplit = $_.Description.Split('|').trim()
+
+                ## PrimaryUser ##
                 # Check to see if split returned multiple array and assigned first object in array to PrimaryUser variable.
                 $PrimaryUser = if ($DescriptionSplit.count -gt 1) {
                     $DescriptionSplit[0]
@@ -42,15 +45,14 @@ Function Convert-ComputerDescription {
                     $DescriptionSplit
                 }
 
-
                 if (
                     # Checks to make sure PrimaryUser property doesn't contain a number.
                     $PrimaryUser -notmatch "[0-9]" -or
                     # Checks to makes sure PrimaryUser property does not contain all capitalized letters.
                     $PrimaryUser -cnotmatch "[^A-Z]"
                 ) {
-                    # Sets $object's PrimaryUser filed to be the found PrimaryUser
-                    $object.PrimaryUser = $PrimaryUser
+                    # Sets $Object's PrimaryUser filed to be the found PrimaryUser
+                    $Object.PrimaryUser = $PrimaryUser
                 }
 
                 # Loop though rest of DescriptionSplit array to match up other objects.
@@ -60,14 +62,14 @@ Function Convert-ComputerDescription {
                         ## ServiceTag ##
                         if (
                             -not(
-                                $object.AssetTag -and
+                                $Object.AssetTag -and
                                 $_.Substring(1) -cmatch "[^A-Z]" -and
                                 $_ -match "[0-9]" -and
                                 $_.Length -eq 7
                             )
                         ) {
-                            # Sets $object's ServiceTag filed to be the found ServiceTag
-                            $object.ServiceTag = $_
+                            # Sets $Object's ServiceTag filed to be the found ServiceTag
+                            $Object.ServiceTag = $_
 
                         }
                         ## AssetTag ##
@@ -79,8 +81,8 @@ Function Convert-ComputerDescription {
                                 $_.Length -eq 28
                             )
                         ) {
-                            # Sets $object's AssetTag filed to be the found AssetTag
-                            $object.AssetTag = $_
+                            # Sets $Object's AssetTag filed to be the found AssetTag
+                            $Object.AssetTag = $_
 
                         }
                         ## InstallDate ##
@@ -91,8 +93,8 @@ Function Convert-ComputerDescription {
                             if ($_.Split(' ').count -eq 2) {
                                 # Checks to see if found date can be converted to actual date
                                 if ([Boolean][DateTime]::Parse($_.Split(' ')[-1])) {
-                                    # Sets $object's InstallDate filed to be the found InstallDate
-                                    $object.InstallDate = $_
+                                    # Sets $Object's InstallDate filed to be the found InstallDate
+                                    $Object.InstallDate = $_
                                 }
                             }
                         }
@@ -101,7 +103,7 @@ Function Convert-ComputerDescription {
             }
         }
 
-        # Return $object to pipeline and starts process next object in the list if any.
-        Return $object
+        # Write $Object to the pipeline.
+        Write-Output $Object
     }
 }
