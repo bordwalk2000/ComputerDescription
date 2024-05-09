@@ -14,9 +14,13 @@ Function Get-ComputerQueryList {
 
         # Specify OU Lists you want to search
         [Parameter()]
+        [ValidateScript(
+            {
+                [bool](Get-ADOrganizationalUnit -Identity $_)
+            }
+        )]
         [string[]]
         $OUPath
-
     )
 
     begin {
@@ -41,10 +45,9 @@ Function Get-ComputerQueryList {
                 }
             }
         }
-
     }
 
     end {
-        $QueryComputerList | Select-Object -Unique | Sort-Object Name
+        return $QueryComputerList | Select-Object Name, Description -Unique | Sort-Object Name
     }
 }
