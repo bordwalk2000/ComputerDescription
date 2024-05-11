@@ -7,19 +7,17 @@ Function Convert-ComputerDescription {
             ValueFromPipeline,
             Position = 0
         )]
-        $Identity
+        $ComputerObject
     )
 
     process {
         # Check if Object type is Type Microsoft.ActiveDirectory.Management.ADComputer'
-
-        if ($Identity.GetType().FullName -ne 'Microsoft.ActiveDirectory.Management.ADComputer') {
-            Write-Error "Type needs to be Microsoft.ActiveDirectory.Management.ADComputer"
-            Break
+        if ($ComputerObject.GetType().FullName -ne 'Microsoft.ActiveDirectory.Management.ADComputer') {
+            Write-Error "Type needs to be Microsoft.ActiveDirectory.Management.ADComputer" -ErrorAction Stop
         }
 
-        ForEach-Object -InputObject $Identity {
-            Write-Verbose  "Converting computer description for $($Computer.Name)"
+        ForEach-Object -InputObject $ComputerObject {
+            Write-Verbose  "Converting computer description for $($_.Name)"
             $Object = New-Object PSObject -Property @{
                 PSTypeName  = 'ComputerDescription'
                 Name        = $_.Name
@@ -28,6 +26,7 @@ Function Convert-ComputerDescription {
                 AssetTag    = ''
                 InstallDate = ''
                 Description = $_.Description
+                Source      = 'Parsed'
             }
 
             # Check to see if AD Object has a description that was able to be pulled.
@@ -61,18 +60,16 @@ Function Convert-ComputerDescription {
                     if (![string]::IsNullOrEmpty($_)) {
                         ## ServiceTag ##
                         if (
-                            -not(
-                                $Object.AssetTag -and
-                                $_.Substring(1) -cmatch "[^A-Z]" -and
-                                $_ -match "[0-9]" -and
-                                $_.Length -eq 7
-                            )
+                            # Checks to make sure String only contains capitalized letters or numbers.
+                            $_ -cmatch "^[A-Z0-9]+$" -and
+                            $_.Length -eq 7
                         ) {
                             # Sets $Object's ServiceTag filed to be the found ServiceTag
                             $Object.ServiceTag = $_
-
                         }
                         ## AssetTag ##
+                        # # Regular expression pattern to match if the string is exactly 6 characters long and the last two characters are numbers
+                        # $pattern = "^.{4}[0-9]{2}$"
                         elseif (
                             $_ -clike "C00*" -and
                             $_ -match "[0-9]" -and
