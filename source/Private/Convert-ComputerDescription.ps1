@@ -12,8 +12,14 @@ Function Convert-ComputerDescription {
 
     process {
         # Check if Object type is Type Microsoft.ActiveDirectory.Management.ADComputer'
-        if ($ComputerObject.GetType().FullName -ne 'Microsoft.ActiveDirectory.Management.ADComputer') {
-            Write-Error "Type needs to be Microsoft.ActiveDirectory.Management.ADComputer" -ErrorAction Stop
+        if (
+            @(
+                'Microsoft.ActiveDirectory.Management.ADComputer',
+                'Selected.Microsoft.ActiveDirectory.Management.ADComputer'
+            ) -notcontains ($ComputerObject | Get-Member)[0].TypeName
+        ) {
+            Write-Error "Type needs to be type Microsoft.ActiveDirectory.Management.ADComputer " `
+                "or 'Selected.Microsoft.ActiveDirectory.Management.ADComputer'" -ErrorAction Stop
         }
 
         ForEach-Object -InputObject $ComputerObject {
