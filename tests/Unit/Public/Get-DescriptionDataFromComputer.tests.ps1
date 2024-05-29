@@ -11,14 +11,17 @@ Describe "Test Get-DescriptionDataFromComputer" {
             Mock Test-Connection { return $true }
             Mock Get-CimInstance { return @{ SerialNumber = "123456"; SMBiosAssetTag = "Asset123" } }
             Mock Get-ADUser { return @{ Name = "John Doe" } }
-            Mock Get-CimInstance -ParameterFilter { $ClassName -eq 'Win32_OperatingSystem' } { return @{ InstallDate = [datetime]"Saturday, January 1, 2022 5:00:00 PM" } }
+            Mock Get-CimInstance -ParameterFilter {
+                $ClassName -eq 'Win32_OperatingSystem'
+            } -MockWith {
+                return @{ InstallDate = [datetime]"Saturday, January 1, 2022 5:00:00 PM" }
+            }
 
             $computerName = "Computer1"
-            # [Diagnostics.CodeAnalysis.SuppressMessageAttribute('AvoidUsingComputerNameHardcoded', '')]
             $result = Get-DescriptionDataFromComputer -ComputerName $computerName
             $result | Should -BeOfType [PSCustomObject]
             $result.PSTypeNames | Should -Contain "ComputerDescription"
-            $result.Name | Should -Be "COMPUTER1"
+            $result.Name | Should -MatchExactly "COMPUTER1"
             $result.PrimaryUser | Should -Be "John Doe"
             $result.ServiceTag | Should -Be "123456"
             $result.AssetTag | Should -Be "ASSET123"
