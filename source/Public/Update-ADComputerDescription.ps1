@@ -51,16 +51,35 @@ Function Update-ADComputerDescription {
         [string[]]
         $OUPath,
 
-        # AssetTag Regex
+        # AssetTag Support
         [Parameter()]
-        [String]
-        $AssetTagRegex,
+        [Switch]
+        $AssetTagSupport,
 
         # ServiceTag Regex
         [Parameter()]
         [String]
         $ServiceTagRegex
     )
+
+    dynamicParam {
+        # This dynamic parameter creation is used because AssetTagRegex needs to be specified if -AssetTagSupport switch is called
+        if ($AssetTagSupport) {
+            Write-Verbose "Building dynamic parameters"
+            $AssetTagRegex = New-Object System.Management.Automation.ParameterAttribute
+            $AssetTagRegex.Mandatory = $true
+            $AssetTagRegex.HelpMessage = "Please enter the number of minutes your account needs to be elevated for: "
+            $AssetTagRegexAttributeCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
+            $AssetTagRegexAttributeCollection.Add($AssetTagRegex)
+            $AssetTagRegexParam = New-Object System.Management.Automation.RuntimeDefinedParameter(
+                'AssetTagRegex', [String], $AssetTagRegexAttributeCollection
+            )
+
+            $paramDictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
+            $paramDictionary.Add('AssetTagRegex', $AssetTagRegexParam)
+            Return $paramDictionary
+        }
+    }
 
     begin {
         # Print currently choice parameter set
@@ -157,8 +176,26 @@ Function Update-ADComputerDescription {
         Write-Verbose "Starting Processing PulledComputerDescriptionList"
         Write-Debug "PulledComputerDescriptionList Values: $($PulledComputerDescriptionList | Out-String)"
         ForEach ($Computer in $PulledComputerDescriptionList) {
-            # Concatenate Description Data
-            $ConcatenatedDescriptionData = [String]::Join(" | ", @($Computer.PrimaryUser, $Computer.ServiceTag, $Computer.AssetTag.trim(), $Computer.InstallDate))
+            # Create an array for the data.
+            if ($AssetTagSupport) {
+                $array = @(
+                    $Computer.PrimaryUser,
+                    $Computer.ServiceTag,
+                    $Computer.AssetTag.trim()
+                    $Computer.InstallDate
+                )
+            }
+            else {
+                $array = @(
+                    $Computer.PrimaryUser,
+                    $Computer.ServiceTag,
+                    $Computer.InstallDate
+                )
+            }
+
+            # Concatenate $array to create AD description.
+            $ConcatenatedDescriptionData = [String]::Join(" | ", $array)
+
             Write-Debug "ConcatenatedDescriptionData for $($Computer.Name): '$ConcatenatedDescriptionData'"
 
             # Try to find corresponding ComputerName in ParsedComputerDescriptionList list.
