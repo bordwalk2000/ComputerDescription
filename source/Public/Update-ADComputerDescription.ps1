@@ -153,10 +153,9 @@ Function Update-ADComputerDescription {
                 -not($ParsedComputerDescriptionList)
             ) {
                 Write-Verbose "Pulling ParsedComputerDescriptionList Data using Names from PulledComputerDescriptionList."
-                # TODO: I Should be able ot use just the PulledComputerDescription Data for this.
-
-                $ParsedComputerDescriptionList = Get-ComputerQueryList $PulledComputerDescriptionList |
-                    Get-ParsedDescriptionData @ParsedParams
+                $ParsedComputerDescriptionList = $PulledComputerDescriptionList |
+                    Get-ComputerQueryList |
+                        Get-ParsedDescriptionData @ParsedParams
             }
         }
 
@@ -216,7 +215,7 @@ Function Update-ADComputerDescription {
                 ) {
                     # Update the AD computer object's description.
                     try {
-                        Write-Verbose "Updating $($Computer.Name) Description from '$($Computer.Description)' to '$ConcatenatedDescriptionData'"
+                        Write-Verbose "Updating $($Computer.Name) Description from '$($ParsedComputerObject.Description)' to '$ConcatenatedDescriptionData'"
                         Set-ADComputer -Identity $Computer.Name -Description $ConcatenatedDescriptionData
                     }
                     catch {

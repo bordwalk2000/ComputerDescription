@@ -1,5 +1,4 @@
 Function Create-ComputerDescriptionObject {
-    # Function Convert-ComputerDescriptionString {
     [CmdletBinding()]
     param(
         # DescriptionString

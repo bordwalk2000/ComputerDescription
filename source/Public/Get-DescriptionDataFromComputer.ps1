@@ -5,8 +5,10 @@
         [Parameter(
             Mandatory,
             ValueFromPipeline,
+            ValueFromPipelineByPropertyName,
             Position = 0
         )]
+        [Alias("Name")]
         [string[]]
         $ComputerName
     )
@@ -98,11 +100,8 @@
             }
             catch {
                 $Message = "Unable to access Get-CimInstance Win32_OperatingSystem on $Computer & therefor unable to pull InstallDate data."
-                $params = @{
-                    Message     = $Message
-                    ErrorAction = Stop
-                }
-                Write-Error @params
+                Write-Error -Message $Message
+                continue
             }
 
             Write-Output $Object

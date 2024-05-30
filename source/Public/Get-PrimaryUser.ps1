@@ -1,5 +1,4 @@
 Function Get-PrimaryUser {
-    [CmdletBinding()]
     param(
         # List of Computer Name
         [Parameter(
