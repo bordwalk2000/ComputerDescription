@@ -18,7 +18,9 @@
 
             # Check to see if able to connect to the machine.
             if (-not(Test-Connection -TargetName $Computer -Count 2 -Quiet)) {
-                Write-Error "$Computer is Offline" -ErrorAction Stop
+                # Write error & start processing next item in the foreach loop.
+                Write-Error "$Computer is Offline"
+                continue
             }
 
             $Object = New-Object PSObject -Property @{
@@ -37,17 +39,13 @@
             ## PrimaryUser ##
             try {
                 Write-Verbose "Calling Get-PrimaryUser Function for $Computer"
-                Write-Debug "Get-PrimaryUser $Computer"
                 $Object.PrimaryUser = Get-PrimaryUser $Computer
                 Write-Debug "PrimaryUserName Results: $($Object.PrimaryUser)"
             }
             catch {
                 $Message = "Unable to access Get-WinEvent on $Computer & therefor unable to pull PrimaryUser data."
-                $params = @{
-                    Message     = $Message
-                    ErrorAction = Stop
-                }
-                Write-Error @params
+                Write-Error -Message $Message
+                continue
             }
 
             if ($Object.PrimaryUser) {
@@ -72,11 +70,8 @@
             }
             catch {
                 $Message = "Unable to access Get-CimInstance Win32_BIOS on $Computer & therefor unable to pull ServiceTag data."
-                $params = @{
-                    Message     = $Message
-                    ErrorAction = Stop
-                }
-                Write-Error @params
+                Write-Error -Message $Message
+                continue
             }
 
 
@@ -89,11 +84,8 @@
             }
             catch {
                 $Message = "Unable to access Get-CimInstance Win32_SystemEnclosure on $Computer & therefor unable to pull AssetTag data."
-                $params = @{
-                    Message     = $Message
-                    ErrorAction = Stop
-                }
-                Write-Error @params
+                Write-Error -Message $Message
+                continue
             }
 
 
