@@ -33,7 +33,7 @@ Copyright = '(c) Bradley Herbst. All rights reserved.'
 Description = 'A module to pull information from a computer, like primary user, and then update the Computer AD object with information that was pulled.'
 
 # Minimum version of the PowerShell engine required by this module
-PowerShellVersion = '5.0'
+PowerShellVersion = '7.0'
 
 # Name of the PowerShell host required by this module
 # PowerShellHostName = ''
@@ -129,15 +129,3 @@ PrivateData = @{
 # DefaultCommandPrefix = ''
 
 }
-
-
-
-
-
-
-
-
-
-
-
-

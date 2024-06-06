@@ -143,8 +143,10 @@ Function Update-ADComputerDescription {
                 -not($PulledComputerDescriptionList)
             ) {
                 Write-Verbose "Pulling PulledComputerDescriptionList Data using Names from ParsedComputerDescriptionList."
-                $PulledComputerDescriptionList = Get-DescriptionDataFromComputer -ComputerName $ParsedComputerDescriptionList.Name
-                Create-ComputerDescriptionObject -ComputerName
+                $params = @{
+                    ComputerName = $ParsedComputerDescriptionList.Name
+                }
+                $PulledComputerDescriptionList = Get-DescriptionDataFromComputer @params
             }
 
             # Grab Missing ParsedComputerDescriptionList using PulledComputerDescriptionList Variable Data
@@ -153,9 +155,9 @@ Function Update-ADComputerDescription {
                 -not($ParsedComputerDescriptionList)
             ) {
                 Write-Verbose "Pulling ParsedComputerDescriptionList Data using Names from PulledComputerDescriptionList."
-                $ParsedComputerDescriptionList = $PulledComputerDescriptionList |
-                    Get-ComputerQueryList |
-                        Get-ParsedDescriptionData @ParsedParams
+                $ParsedComputerDescriptionList = $PulledComputerDescriptionList
+                | Get-ComputerQueryList
+                | Get-ParsedDescriptionData @ParsedParams
             }
         }
 
@@ -199,9 +201,9 @@ Function Update-ADComputerDescription {
 
             # Try to find corresponding ComputerName in ParsedComputerDescriptionList list.
             if (
-                $ParsedComputerDescriptionList |
-                    Where-Object { $_.Name -eq $Computer.Name } |
-                        Tee-Object -Variable ParsedComputerObject
+                $ParsedComputerDescriptionList
+                | Where-Object { $_.Name -eq $Computer.Name }
+                | Tee-Object -Variable ParsedComputerObject
             ) {
                 # Preform checks for to see if we have more up-to-date data and ask user if we want to update the description in AD.
                 if (

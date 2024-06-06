@@ -61,12 +61,18 @@ Function Get-ParsedDescriptionData {
                 (
                     # Call function to parsed computer description & return object
                     Create-ComputerDescriptionObject -DescriptionString $_.Description @params
-                ).PSObject.Members |
-                    Where-Object MemberType -eq 'NoteProperty' |
-                        Foreach-Object {
-                            # Adds each one of the object's note returned to the $Object variable
-                            $Object | Add-Member -MemberType NoteProperty -Name $_.Name -Value $_.Value -ErrorAction SilentlyContinue
-                        }
+                ).PSObject.Members
+                | Where-Object MemberType -eq 'NoteProperty'
+                | Foreach-Object {
+                    # Adds each one of the object's note returned to the $Object variable
+                    $params = @{
+                        MemberType  = NoteProperty
+                        Name        = $_.Name
+                        Value       = $_.Value
+                        ErrorAction = SilentlyContinue
+                    }
+                    $Object | Add-Member @params
+                }
             }
         }
 

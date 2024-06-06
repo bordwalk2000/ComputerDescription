@@ -1,4 +1,4 @@
-﻿Function Get-DescriptionDataFromComputer {
+Function Get-DescriptionDataFromComputer {
     [CmdletBinding()]
     param(
         # List of Computers to query data from
@@ -135,6 +135,7 @@
 
     end {
         # Removing Wait-Job allows the jobs to go on to the next pipeline as soon as that job finishes.
-        $JobList | Receive-Job -Wait
+        return $JobList
+        | Receive-Job -Wait
     }
 }

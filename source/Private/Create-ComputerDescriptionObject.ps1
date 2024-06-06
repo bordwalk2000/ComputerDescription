@@ -57,7 +57,9 @@ Function Create-ComputerDescriptionObject {
         }
 
         # Loop though rest of DescriptionSplit array to match up other objects.
-        $DescriptionSplit | Where-Object { $_ -ne $DescriptionSplit[0] } | ForEach-Object {
+        $DescriptionSplit
+        | Where-Object { $_ -ne $DescriptionSplit[0] }
+        | ForEach-Object {
             # Verify a value is in the array
             if (![string]::IsNullOrEmpty($_)) {
 

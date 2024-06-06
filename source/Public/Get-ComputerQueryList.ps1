@@ -48,6 +48,8 @@ Function Get-ComputerQueryList {
     }
 
     end {
-        return $QueryComputerList | Select-Object Name, Description -Unique | Sort-Object Name
+        return $QueryComputerList
+        | Select-Object Name, Description -Unique
+        | Sort-Object Name
     }
 }
