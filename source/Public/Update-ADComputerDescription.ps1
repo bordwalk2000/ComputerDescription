@@ -77,7 +77,7 @@ Function Update-ADComputerDescription {
 
             $paramDictionary = New-Object System.Management.Automation.RuntimeDefinedParameterDictionary
             $paramDictionary.Add('AssetTagRegex', $AssetTagRegexParam)
-            Return $paramDictionary
+            return $paramDictionary
         }
     }
 
@@ -209,7 +209,7 @@ Function Update-ADComputerDescription {
                     $ConcatenatedDescriptionData -ne $ParsedComputerObject.Description -and
                     # Ask the user to confirm changing the AD computer description.
                     $PSCmdlet.ShouldProcess(
-                        $_.Name,
+                        $ParsedComputerObject.Name,
                         "Updated description from '$($ParsedComputerObject.Description)' to '$ConcatenatedDescriptionData'"
                     )
                 ) {
@@ -219,8 +219,7 @@ Function Update-ADComputerDescription {
                         Set-ADComputer -Identity $Computer.Name -Description $ConcatenatedDescriptionData
                     }
                     catch {
-                        Write-Error "Unable to set computer description for $($Computer.Name)."
-                        Write-Error $($_.Exception.Message)
+                        Write-Error "Unable to set computer description for $($Computer.Name). `n$_"
                     }
                 }
                 else {
