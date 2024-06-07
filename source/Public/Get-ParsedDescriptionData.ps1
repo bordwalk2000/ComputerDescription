@@ -66,10 +66,10 @@ Function Get-ParsedDescriptionData {
                 | Foreach-Object {
                     # Adds each one of the object's note returned to the $Object variable
                     $params = @{
-                        MemberType  = NoteProperty
+                        MemberType  = 'NoteProperty'
                         Name        = $_.Name
                         Value       = $_.Value
-                        ErrorAction = SilentlyContinue
+                        ErrorAction = 'SilentlyContinue'
                     }
                     $Object | Add-Member @params
                 }
