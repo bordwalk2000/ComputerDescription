@@ -1,4 +1,7 @@
-﻿BeforeAll {
+﻿# Have to disable because Mocking doesn't work with Dynamic Code.
+# https://github.com/pester/Pester/issues/2115
+
+BeforeAll {
     . $PSCommandPath.Replace('tests\Unit', 'source').Replace('tests.ps1', 'ps1')
     . $PSCommandPath.Replace('tests\Unit', 'source').Replace('Get-DescriptionDataFromComputer.tests.ps1', 'Get-PrimaryUser.ps1')
 
