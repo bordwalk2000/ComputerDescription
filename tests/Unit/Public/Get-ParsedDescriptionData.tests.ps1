@@ -6,17 +6,6 @@ BeforeAll {
 Describe "Get-ParsedDescriptionData" {
     Context "With valid input" {
         It "Returns parsed description data" {
-            # # Mock the Create-ComputerDescriptionObject function
-            # Mock Create-ComputerDescriptionObject {
-            #     # Simulate Create-ComputerDescriptionObject's behavior
-            #     $descriptionString = "John Doe | ABC1234 | Deployed 2023-05-10"
-            #     return [PSCustomObject]@{
-            #         PrimaryUser = "John Doe"
-            #         ServiceTag  = "ABC1234"
-            #         InstallDate = "Deployed 2023-05-10"
-            #     }
-            # }
-
             # Define test input
             $computerObject = New-Object -TypeName Microsoft.ActiveDirectory.Management.ADComputer -Property @{
                 Description = "John Doe | ABC1234 | Deployed 2023-05-10"

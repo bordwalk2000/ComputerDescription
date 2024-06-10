@@ -22,15 +22,15 @@ Function Get-ParsedDescriptionData {
 
     begin {
         # "Define Params for Get-ParsedDescriptionData"
-        $params = @{
+        $regexParams = @{
             AssetTagRegex   = $AssetTagRegex
             ServiceTagRegex = $ServiceTagRegex
         }
 
         # Remove empty items from params
-        foreach ($Key in @($params.Keys)) {
-            if (-not $params[$Key]) {
-                $params.Remove($Key)
+        foreach ($Key in @($regexParams.Keys)) {
+            if (-not $regexParams[$Key]) {
+                $regexParams.Remove($Key)
             }
         }
     }
@@ -50,6 +50,7 @@ Function Get-ParsedDescriptionData {
 
         ForEach-Object -InputObject $ComputerObject {
             Write-Verbose  "Converting computer description for $($_.Name)"
+            Write-Debug "Description String: $($_.description)"
             $Object = New-Object PSObject -Property @{
                 PSTypeName = 'ComputerDescription'
                 Name       = $_.Name
@@ -60,7 +61,7 @@ Function Get-ParsedDescriptionData {
             if ($_.Description) {
                 (
                     # Call function to parsed computer description & return object
-                    Create-ComputerDescriptionObject -DescriptionString $_.Description @params
+                    Create-ComputerDescriptionObject -DescriptionString $_.Description @regexParams
                 ).PSObject.Members
                 | Where-Object MemberType -eq 'NoteProperty'
                 | Foreach-Object {

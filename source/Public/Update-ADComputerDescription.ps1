@@ -86,15 +86,15 @@ Function Update-ADComputerDescription {
         Write-Verbose "Selected ParameterSet: $($PSCmdlet.ParameterSetName)"
 
         # Define Params used in Get-ParsedDescriptionData Function
-        $ParsedParams = @{
+        $regexParams = @{
             AssetTagRegex   = $AssetTagRegex
             ServiceTagRegex = $ServiceTagRegex
         }
 
         # Remove empty items from params
-        foreach ($Key in @($ParsedParams.Keys)) {
-            if (-not $ParsedParams[$Key]) {
-                $ParsedParams.Remove($Key)
+        foreach ($Key in @($regexParams.Keys)) {
+            if (-not $regexParams[$Key]) {
+                $regexParams.Remove($Key)
             }
         }
 
@@ -121,7 +121,7 @@ Function Update-ADComputerDescription {
             if ($ComputerList) {
                 # Grab the data on the found computers.
                 Write-Debug "Found ComputerList: $($ComputerList | Out-String)"
-                $ParsedComputerDescriptionList = $ComputerList | Get-ParsedDescriptionData @ParsedParams
+                $ParsedComputerDescriptionList = $ComputerList | Get-ParsedDescriptionData @regexParams
                 Write-Debug "Found ParsedComputerDescriptionList: $($ParsedComputerDescriptionList | Out-String)"
 
                 Get-DescriptionDataFromComputer -ComputerName $ComputerList.Name -OutVariable PulledComputerDescriptionList
@@ -146,7 +146,12 @@ Function Update-ADComputerDescription {
                 $params = @{
                     ComputerName = $ParsedComputerDescriptionList.Name
                 }
-                $PulledComputerDescriptionList = Get-DescriptionDataFromComputer @params
+                $Results = Get-DescriptionDataFromComputer @params
+
+                # Check for returned data to prevent MetadataError when trying to assign to PulledComputerDescriptionList
+                if ($Results.count -gt 0) {
+                    $PulledComputerDescriptionList = $Results
+                }
             }
 
             # Grab Missing ParsedComputerDescriptionList using PulledComputerDescriptionList Variable Data
@@ -157,7 +162,7 @@ Function Update-ADComputerDescription {
                 Write-Verbose "Pulling ParsedComputerDescriptionList Data using Names from PulledComputerDescriptionList."
                 $ParsedComputerDescriptionList = $PulledComputerDescriptionList
                 | Get-ComputerQueryList
-                | Get-ParsedDescriptionData @ParsedParams
+                | Get-ParsedDescriptionData @regexParams
             }
         }
 
@@ -166,8 +171,14 @@ Function Update-ADComputerDescription {
             -not($ParsedComputerDescriptionList) -or
             -not($PulledComputerDescriptionList)
         ) {
-            Write-Verbose "One or both of the ComputerDescriptionList variables was able to be populated."
-            Write-Error "Unable to find a ComputerDescriptionList to pull data from."
+            Write-Verbose "One or both of the ComputerDescriptionList variables were unable to be populated."
+            Write-Debug "ParsedComputerDescriptionList Count: $($ParsedComputerDescriptionList.count)"
+            Write-Debug "PulledComputerDescriptionList Count: $($PulledComputerDescriptionList.count)"
+            Write-Error $([string]::Join(
+                    "`n",
+                    "At least one of the ComputerDescriptionList variables was unable to grab required data.",
+                    "Fix the is with missing data and run the function again."
+                ))
             break
         }
     }
