@@ -12,7 +12,7 @@
 RootModule = 'ComputerDescription.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.1'
+ModuleVersion = '0.9.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -98,10 +98,10 @@ PrivateData = @{
         # Tags = @()
 
         # A URL to the license for this module.
-        # LicenseUri = ''
+        LicenseUri = 'https://github.com/bordwalk2000/ComputerDescription/blob/master/LICENSE.md'
 
         # A URL to the main website for this project.
-        # ProjectUri = ''
+        ProjectUri = 'https://github.com/bordwalk2000/ComputerDescription'
 
         # A URL to an icon representing this module.
         # IconUri = ''
