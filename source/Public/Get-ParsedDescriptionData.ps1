@@ -1,3 +1,36 @@
+<#
+.SYNOPSIS
+    Parses the description data of Active Directory computer objects.
+
+.DESCRIPTION
+    The Get-ParsedDescriptionData function processes a list of Active Directory computer objects,
+    extracting and parsing description data according to specified regular expressions for asset tags and service tags.
+
+.PARAMETER ComputerObject
+    The Active Directory computer object(s) to be processed.
+    This parameter is mandatory and accepts values from the pipeline.
+
+.PARAMETER AssetTagRegex
+    The regular expression pattern used to extract asset tags from the computer description.
+
+.PARAMETER ServiceTagRegex
+    The regular expression pattern used to extract service tags from the computer description.
+
+.EXAMPLE
+    PS C:\> Get-ADComputer -Filter * | Get-ParsedDescriptionData -AssetTagRegex "^[C]\d{5}$" -ServiceTagRegex "\w{7}"
+
+    Retrieves all computer objects from AD and parses their descriptions using the provided regex patterns.
+
+.EXAMPLE
+    PS C:\> $computers = Get-ADComputer -Filter *; $computers | Get-ParsedDescriptionData -AssetTagRegex "^[C]\d{5}$"
+
+    Parses the description of the given computer objects using the specified asset tag regex pattern.
+
+.NOTES
+    - The function requires the input objects to be of type Microsoft.ActiveDirectory.Management.ADComputer.
+    - Ensure you have appropriate permissions to query Active Directory and read the description property of computer objects.
+
+#>
 Function Get-ParsedDescriptionData {
     [CmdletBinding()]
     param(
