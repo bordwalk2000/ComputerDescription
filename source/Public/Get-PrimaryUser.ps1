@@ -1,3 +1,31 @@
+<#
+.SYNOPSIS
+    Retrieves the primary user of a specified computer.
+
+.DESCRIPTION
+    The Get-PrimaryUser function connects to a specified computer and retrieves the primary user by
+    analyzing recent Terminal Services local session manager events.
+    It filters out administrative and setup accounts and identifies the user with the most session logins.
+
+.PARAMETER ComputerName
+    The name of the computer to query for the primary user.
+    This parameter is mandatory and accepts values from the pipeline.
+
+.EXAMPLE
+    PS C:\> "Computer1" | Get-PrimaryUser
+
+    Retrieves the primary user of "Computer1".
+
+.EXAMPLE
+    PS C:\> Get-PrimaryUser -ComputerName "Computer1"
+
+    Retrieves the primary user of "Computer1".
+
+.NOTES
+    - This function requires the ability to read Windows event logs on the specified computer.
+    - Ensure you have the necessary permissions to access event logs on the target computer.
+
+#>
 Function Get-PrimaryUser {
     param(
         # List of Computer Name

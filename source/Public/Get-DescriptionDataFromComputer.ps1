@@ -1,3 +1,42 @@
+<#
+.SYNOPSIS
+    Retrieves description data from specified computers.
+
+.DESCRIPTION
+    The Get-DescriptionDataFromComputer function connects to specified computers, retrieves various
+    pieces of description data such as Primary User, Service Tag, Asset Tag, and Install Date, and
+    outputs an object containing this data.
+
+.PARAMETER ComputerName
+    A list of computer names to query data from.
+    This parameter is mandatory and accepts values from the pipeline or by property name.
+
+.PARAMETER ThrottleLimit
+    Specifies the number of concurrent jobs that can be run at one time.
+    The default value is 5.
+
+.EXAMPLE
+    PS C:\> "PC1", "PC2" | Get-DescriptionDataFromComputer
+
+    Retrieves description data from the specified computers "PC1" and "PC2".
+
+.EXAMPLE
+    PS C:\> Get-DescriptionDataFromComputer -ComputerName "PC1", "PC2" -ThrottleLimit 10
+
+    Retrieves description data from the specified computers with a throttle limit of 10 concurrent jobs.
+
+.EXAMPLE
+    PS C:\> Get-ADComputer -Filter * | Get-DescriptionDataFromComputer
+
+    Retrieves description data from all computers in Active Directory.
+
+.NOTES
+    - This function requires the Active Directory and CIM cmdlets.
+    - Ensure you have the necessary permissions to query the computer objects.
+    - The function checks if each computer is online before attempting to retrieve data.
+    - The retrieved data includes Primary User, Service Tag, Asset Tag, and Install Date.
+
+#>
 Function Get-DescriptionDataFromComputer {
     [CmdletBinding()]
     param(

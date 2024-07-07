@@ -1,3 +1,37 @@
+<#
+.SYNOPSIS
+    Creates a computer description object by parsing a description string.
+
+.DESCRIPTION
+    The Create-ComputerDescriptionObject function processes a description string,
+    extracting and assigning values such as PrimaryUser, ServiceTag, AssetTag, and InstallDate
+    to a new PSObject. It uses regular expressions to identify and validate the ServiceTag and AssetTag.
+
+.PARAMETER DescriptionString
+    The description string to be parsed. This parameter accepts values from the pipeline.
+
+.PARAMETER AssetTagRegex
+    The regular expression pattern used to extract asset tags from the description string.
+
+.PARAMETER ServiceTagRegex
+    The regular expression pattern used to extract service tags from the description string.
+    Defaults to a regex pattern for Dell Service Tags, which matches any uppercase letter (A-Z) or digit (0-9) and is 7 characters long.
+
+.EXAMPLE
+    PS C:\> "JohnDoe | ABC1234 | 2021-07-06" | Create-ComputerDescriptionObject -AssetTagRegex "ABC\d{4}"
+
+    Parses the description string and returns a ComputerDescription object with the extracted properties.
+
+.EXAMPLE
+    PS C:\> Create-ComputerDescriptionObject -DescriptionString "JohnDoe | ABC1234 | 2021-07-06" -AssetTagRegex "ABC\d{4}"
+
+    Parses the provided description string and returns a ComputerDescription object with the extracted properties.
+
+.NOTES
+    - Ensure the description string is properly formatted with expected delimiters and data.
+    - The function will attempt to parse the description string based on the provided regex patterns for asset tags and service tags.
+
+#>
 Function Create-ComputerDescriptionObject {
     [CmdletBinding()]
     param(

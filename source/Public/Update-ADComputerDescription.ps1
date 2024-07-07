@@ -1,3 +1,76 @@
+<#
+.SYNOPSIS
+    Updates the description field of Active Directory computer objects based on provided data.
+
+.DESCRIPTION
+    The Update-ADComputerDescription function allows administrators to update the description field
+    of Active Directory computer objects.
+    The function can use parsed or pulled computer description data, or a list of computer names and
+    organizational units.
+    It supports dynamically required parameters when the AssetTagSupport switch is used.
+
+.PARAMETER ParsedComputerDescriptionList
+    A list of parsed computer description data objects. The data source must be "Parsed".
+
+.PARAMETER PulledComputerDescriptionList
+    A list of pulled computer description data objects. The data source must be "Pulled".
+
+.PARAMETER ComputerName
+    A list of computer names to update. This parameter can be provided via pipeline input.
+
+.PARAMETER OUPath
+    A list of OU paths to search for computers. This parameter requires valid OUs.
+
+.PARAMETER AssetTagSupport
+    A switch to enable asset tag support, requiring the AssetTagRegex parameter to be specified.
+
+.PARAMETER ServiceTagRegex
+    A regular expression to match service tags.
+
+.PARAMETER AssetTagRegex
+    (Dynamic) A regular expression to match asset tags. This parameter is mandatory if AssetTagSupport is specified.
+
+.EXAMPLE
+    PS C:\> Update-ADComputerDescription -ParsedComputerDescriptionList $parsedData
+
+    Updates the AD computer descriptions using the parsed data.
+
+.EXAMPLE
+    PS C:\> Get-ADComputer -Filter * | Update-ADComputerDescription -OUPath "OU=Computers,DC=example,DC=com"
+
+    Updates the AD computer descriptions for all computers in the specified OU.
+
+.EXAMPLE
+    PS C:\> Update-ADComputerDescription -ComputerName "PC01", "PC02" -ServiceTagRegex '^[C]\d{5}$'
+
+    Updates the AD computer descriptions for specified computers with service tags matching the regex.
+
+.EXAMPLE
+    PS C:\> Get-ComputerQueryList -OUPath "OU=No_Reboot,OU=Computers,OU=mo-stl-obrien,DC=ametek,DC=com" |
+    Get-ParsedDescriptionData -AssetTagRegex '^[C]\d{5}$' | Update-ADComputerDescription
+
+    Updates the AD computer descriptions for specified computers with service tags matching the regex.
+
+.EXAMPLE
+    PS C:\> Get-DescriptionDataFromComputer -ComputerName (
+        Get-ComputerQueryList -OUPath "OU=Computers,OU=OU1,DC=example,DC=com"
+    ).Name -Verbose -Debug -ThrottleLimit 1 | Update-ADComputerDescription -AssetTagSupport -AssetTagRegex '^[C]\d{5}$'
+
+    Updates the AD computer descriptions for specified computers with service tags matching the regex.
+
+.EXAMPLE
+    PS C:\> Update-ADComputerDescription -ParsedComputerDescriptionList (
+        Get-ComputerQueryList -OUPath "OU=Computers,OU=OU1,DC=example,DC=com", "OU=Laptops,OU=OU2,DC=example,DC=com"
+        | Get-ParsedDescriptionData -AssetTagRegex '^[C]\d{5}$'
+    ) -AssetTagSupport -AssetTagRegex '^[C]\d{5}$' -Verbose -Debug
+
+    Updates the AD computer descriptions for specified computers with service tags matching the regex.
+
+.NOTES
+    - This function requires the Active Directory module.
+    - Ensure you have the necessary permissions to update AD computer objects.
+    - If using the AssetTagSupport switch, the AssetTagRegex parameter becomes mandatory.
+#>
 Function Update-ADComputerDescription {
     [CmdletBinding(
         SupportsShouldProcess = $true,
