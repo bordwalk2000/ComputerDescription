@@ -179,8 +179,8 @@ Function Update-ADComputerDescription {
         if ($PSCmdlet.ParameterSetName -eq "ComputerList") {
             # "Define Params for Get-ComputerQueryList"
             $params = @{
-                ComputerName = $ComputerName
-                OUPath       = $OUPath
+                Name   = $ComputerName
+                OUPath = $OUPath
             }
 
             # Remove empty items from params
