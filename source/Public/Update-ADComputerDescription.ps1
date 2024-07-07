@@ -141,7 +141,7 @@ Function Update-ADComputerDescription {
             Write-Verbose "Building dynamic parameters"
             $AssetTagRegex = New-Object System.Management.Automation.ParameterAttribute
             $AssetTagRegex.Mandatory = $true
-            $AssetTagRegex.HelpMessage = "Please enter the number of minutes your account needs to be elevated for: "
+            $AssetTagRegex.HelpMessage = "The regex that will be used for specifying AssetTag format."
             $AssetTagRegexAttributeCollection = New-Object System.Collections.ObjectModel.Collection[System.Attribute]
             $AssetTagRegexAttributeCollection.Add($AssetTagRegex)
             $AssetTagRegexParam = New-Object System.Management.Automation.RuntimeDefinedParameter(
@@ -155,6 +155,10 @@ Function Update-ADComputerDescription {
     }
 
     begin {
+        ######################################################################
+        ## Grab source data before processing results in the process block. ##
+        ######################################################################
+
         # Print currently choice parameter set
         Write-Verbose "Selected ParameterSet: $($PSCmdlet.ParameterSetName)"
 
@@ -251,8 +255,7 @@ Function Update-ADComputerDescription {
                     "`n",
                     "At least one of the ComputerDescriptionList variables was unable to grab required data.",
                     "Fix the is with missing data and run the function again."
-                ))
-            break
+                )) -ErrorAction Stop
         }
     }
 
@@ -301,7 +304,8 @@ Function Update-ADComputerDescription {
                 ) {
                     # Update the AD computer object's description.
                     try {
-                        Write-Verbose "Updating $($Computer.Name) Description from '$($ParsedComputerObject.Description)' to '$ConcatenatedDescriptionData'"
+                        $msg = "Updating $($Computer.Name) Description from '$($ParsedComputerObject.Description)' to '$ConcatenatedDescriptionData'"
+                        Write-Verbose $msg
                         Set-ADComputer -Identity $Computer.Name -Description $ConcatenatedDescriptionData
                     }
                     catch {

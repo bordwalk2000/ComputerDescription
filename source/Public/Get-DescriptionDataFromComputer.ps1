@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Retrieves description data from specified computers.
 
@@ -60,6 +60,8 @@ Function Get-DescriptionDataFromComputer {
     begin {
         # Code that will be during the different jobs that will be created.
         $ScriptBlock = {
+            # Import-Module .\output\module\ComputerDescription\0.0.1\ComputerDescription.psd1
+
             foreach ($Computer in $Args) {
                 # Set Computer variable to be in all caps.
                 $Computer = $Computer.ToUpper()
