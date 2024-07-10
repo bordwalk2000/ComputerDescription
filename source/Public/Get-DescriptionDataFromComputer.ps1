@@ -87,6 +87,17 @@ Function Get-DescriptionDataFromComputer {
 
                 Write-Verbose "$Computer is Online, Start process to pull data from $Computer."
 
+                #Define params to be used in Get-CimInstance functions
+                $params = @{
+                    ComputerName = $Computer
+                    ErrorAction  = 'Stop'
+                }
+
+                # Remove ComputerName param for querying local machine.
+                if (@($env:COMPUTERNAME, 'localhost') -contains $Computer) {
+                    $params.Remove('ComputerName')
+                }
+
                 ## PrimaryUser ##
                 try {
                     Write-Verbose "Calling Get-PrimaryUser Function for $Computer"
@@ -112,7 +123,7 @@ Function Get-DescriptionDataFromComputer {
 
                 ## ServiceTag ##
                 try {
-                    $Object.ServiceTag = (Get-CimInstance Win32_BIOS -ComputerName $Computer -ErrorAction Stop).SerialNumber
+                    $Object.ServiceTag = (Get-CimInstance Win32_BIOS @params).SerialNumber
 
                     # Specify VMware VM if service tag says vmware.
                     if ($ServiceTag -match "vmware") {
@@ -129,7 +140,7 @@ Function Get-DescriptionDataFromComputer {
                 ## AssetTag ##
                 try {
                     $Object.AssetTag = (
-                        Get-CimInstance Win32_SystemEnclosure -ComputerName $Computer -ErrorAction Stop
+                        Get-CimInstance Win32_SystemEnclosure @params
                     ).SMBiosAssetTag.split(' ')[0].ToUpper()
                     Write-Debug "SMBiosAssetTag Results: $($Object.AssetTag)"
                 }
@@ -143,7 +154,7 @@ Function Get-DescriptionDataFromComputer {
                 ## InstallDate ##
                 try {
                     $Object.InstallDate = "Deployed " + (
-                        Get-CimInstance Win32_OperatingSystem -ComputerName $Computer -ErrorAction Stop
+                        Get-CimInstance Win32_OperatingSystem @params
                     ).InstallDate.ToString("yyyy-MM-dd")
                     Write-Debug "InstallDate Results: $($Object.InstallDate)"
                 }
