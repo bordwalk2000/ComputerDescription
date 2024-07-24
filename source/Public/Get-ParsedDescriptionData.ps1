@@ -94,7 +94,7 @@ Function Get-ParsedDescriptionData {
             if ($_.Description) {
                 (
                     # Call function to parsed computer description & return object
-                    Create-ComputerDescriptionObject -DescriptionString $_.Description @regexParams
+                    New-ComputerDescriptionObject -DescriptionString $_.Description @regexParams
                 ).PSObject.Members
                 | Where-Object MemberType -eq 'NoteProperty'
                 | Foreach-Object {

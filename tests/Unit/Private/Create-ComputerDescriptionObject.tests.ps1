@@ -2,14 +2,14 @@ BeforeAll {
     . $PSCommandPath.Replace('tests\Unit', 'source').Replace('tests.ps1', 'ps1')
 }
 
-Describe "Create-ComputerDescriptionObject" {
+Describe "New-ComputerDescriptionObject" {
     Context "With valid input" {
         It "Creates a ComputerDescription object" {
             # Define test input
             $descriptionString = "John Doe | ABC1234 | Deployed 2023-05-10"
 
             # Call the function
-            $result = Create-ComputerDescriptionObject -DescriptionString $descriptionString
+            $result = New-ComputerDescriptionObject -DescriptionString $descriptionString
 
             # Assert the object is created & PSTypeNames Contains 'ComputerDescription'
             $result | Should -BeOfType [PSCustomObject]
@@ -28,7 +28,7 @@ Describe "Create-ComputerDescriptionObject" {
             $descriptionString = "John Doe | ABC1234 | C00001 | Deployed 2023-05-10"
 
             # Call the function
-            $result = Create-ComputerDescriptionObject -DescriptionString $descriptionString -AssetTagRegex '^[C]\d{5}$'
+            $result = New-ComputerDescriptionObject -DescriptionString $descriptionString -AssetTagRegex '^[C]\d{5}$'
 
             # Assert the object is created & PSTypeNames Contains 'ComputerDescription'
             $result | Should -BeOfType [PSCustomObject]
@@ -48,7 +48,7 @@ Describe "Create-ComputerDescriptionObject" {
             $descriptionString = ""
 
             # Call the function
-            $result = Create-ComputerDescriptionObject -DescriptionString $descriptionString
+            $result = New-ComputerDescriptionObject -DescriptionString $descriptionString
 
             # Assert the object is created & PSTypeNames Contains 'ComputerDescription'
             $result | Should -BeOfType [PSCustomObject]
@@ -67,7 +67,7 @@ Describe "Create-ComputerDescriptionObject" {
             $descriptionString = "John Doe"
 
             # Call the function
-            $result = Create-ComputerDescriptionObject -DescriptionString $descriptionString
+            $result = New-ComputerDescriptionObject -DescriptionString $descriptionString
 
             # Assert the object is created & PSTypeNames Contains 'ComputerDescription'
             $result | Should -BeOfType [PSCustomObject]

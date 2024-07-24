@@ -1,6 +1,6 @@
 BeforeAll {
     . $PSCommandPath.Replace('tests\Unit', 'source').Replace('tests.ps1', 'ps1')
-    . $PSScriptRoot.Replace('tests\Unit', 'source').Replace('Public', 'Private\Create-ComputerDescriptionObject.ps1')
+    . $PSScriptRoot.Replace('tests\Unit', 'source').Replace('Public', 'Private\New-ComputerDescriptionObject.ps1')
 }
 
 Describe "Get-ParsedDescriptionData" {
